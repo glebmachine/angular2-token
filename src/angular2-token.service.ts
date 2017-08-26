@@ -32,6 +32,24 @@ import {
     Angular2TokenOptions
 } from './angular2-token.model';
 
+// localStorage polyfill
+const _localStorage = typeof localStorage !== 'undefined' && localStorage ?
+localStorage : {
+    _data: {},
+    setItem: (id: string, val: string) => {
+        _localStorage['_data'][id] = String(val)
+    },
+    getItem: (id: string) => {
+        return _localStorage['_data'].hasOwnProperty(id) ? _localStorage['_data'][id] : undefined
+    },
+    removeItem: (id: string) => {
+        delete _localStorage['_data'][id]
+    },
+    clear: () => {
+        _localStorage['_data'] = {}
+    }
+}
+
 @Injectable()
 export class Angular2TokenService implements CanActivate {
 
@@ -86,7 +104,7 @@ export class Angular2TokenService implements CanActivate {
         else {
             // Store current location in storage (usefull for redirection after signing in)
             if (this.atOptions.signInStoredUrlStorageKey) {
-                localStorage.setItem(
+                _localStorage.setItem(
                     this.atOptions.signInStoredUrlStorageKey,
                     this.location.pathname + this.location.search
                 );
@@ -233,11 +251,11 @@ export class Angular2TokenService implements CanActivate {
     signOut(): Observable<Response> {
         let observ = this.delete(this.getUserPath() + this.atOptions.signOutPath);
 
-        localStorage.removeItem('accessToken');
-        localStorage.removeItem('client');
-        localStorage.removeItem('expiry');
-        localStorage.removeItem('tokenType');
-        localStorage.removeItem('uid');
+        _localStorage.removeItem('accessToken');
+        _localStorage.removeItem('client');
+        _localStorage.removeItem('expiry');
+        _localStorage.removeItem('tokenType');
+        _localStorage.removeItem('uid');
 
         this.atCurrentAuthData = null;
         this.atCurrentUserType = null;
@@ -422,7 +440,7 @@ export class Angular2TokenService implements CanActivate {
     // Try to load auth data
     private tryLoadAuthData(): void {
 
-        let userType = this.getUserTypeByName(localStorage.getItem('userType'));
+        let userType = this.getUserTypeByName(_localStorage.getItem('userType'));
 
         if (userType)
             this.atCurrentUserType = userType;
@@ -468,11 +486,11 @@ export class Angular2TokenService implements CanActivate {
     private getAuthDataFromStorage(): void {
 
         let authData: AuthData = {
-            accessToken:    localStorage.getItem('accessToken'),
-            client:         localStorage.getItem('client'),
-            expiry:         localStorage.getItem('expiry'),
-            tokenType:      localStorage.getItem('tokenType'),
-            uid:            localStorage.getItem('uid')
+            accessToken:    _localStorage.getItem('accessToken'),
+            client:         _localStorage.getItem('client'),
+            expiry:         _localStorage.getItem('expiry'),
+            tokenType:      _localStorage.getItem('tokenType'),
+            uid:            _localStorage.getItem('uid')
         };
 
         if (this.checkAuthData(authData))
@@ -509,14 +527,14 @@ export class Angular2TokenService implements CanActivate {
 
             this.atCurrentAuthData = authData;
 
-            localStorage.setItem('accessToken', authData.accessToken);
-            localStorage.setItem('client', authData.client);
-            localStorage.setItem('expiry', authData.expiry);
-            localStorage.setItem('tokenType', authData.tokenType);
-            localStorage.setItem('uid', authData.uid);
+            _localStorage.setItem('accessToken', authData.accessToken);
+            _localStorage.setItem('client', authData.client);
+            _localStorage.setItem('expiry', authData.expiry);
+            _localStorage.setItem('tokenType', authData.tokenType);
+            _localStorage.setItem('uid', authData.uid);
 
             if (this.atCurrentUserType != null)
-                localStorage.setItem('userType', this.atCurrentUserType.name);
+                _localStorage.setItem('userType', this.atCurrentUserType.name);
 
         }
     }
