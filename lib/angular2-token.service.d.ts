@@ -1,3 +1,4 @@
+import { PlatformLocation } from '@angular/common';
 import { ActivatedRoute, Router, CanActivate } from '@angular/router';
 import { Http, Response, Headers, RequestOptionsArgs } from '@angular/http';
 import { Observable } from 'rxjs/Observable';
@@ -9,6 +10,7 @@ import 'rxjs/add/operator/filter';
 import { SignInData, RegisterData, UpdatePasswordData, ResetPasswordData, UserData, AuthData, Angular2TokenOptions } from './angular2-token.model';
 export declare class Angular2TokenService implements CanActivate {
     private http;
+    private location;
     private activatedRoute;
     private router;
     readonly currentUserType: string;
@@ -19,7 +21,7 @@ export declare class Angular2TokenService implements CanActivate {
     private atCurrentUserType;
     private atCurrentAuthData;
     private atCurrentUserData;
-    constructor(http: Http, activatedRoute: ActivatedRoute, router: Router);
+    constructor(http: Http, location: PlatformLocation, activatedRoute: ActivatedRoute, router: Router);
     userSignedIn(): boolean;
     canActivate(): boolean;
     init(options?: Angular2TokenOptions): void;

@@ -1,4 +1,5 @@
 import { Injectable, Optional } from '@angular/core';
+import { PlatformLocation } from '@angular/common';
 import { ActivatedRoute, Router, CanActivate } from '@angular/router';
 import {
     Http,
@@ -9,6 +10,7 @@ import {
     RequestOptions,
     RequestOptionsArgs
 } from '@angular/http';
+
 
 import { Observable } from 'rxjs/Observable';
 import 'rxjs/add/operator/share';
@@ -69,6 +71,7 @@ export class Angular2TokenService implements CanActivate {
 
     constructor(
         private http: Http,
+        private location: PlatformLocation,
         @Optional() private activatedRoute: ActivatedRoute,
         @Optional() private router: Router
     ) { }
@@ -85,7 +88,7 @@ export class Angular2TokenService implements CanActivate {
             if (this.atOptions.signInStoredUrlStorageKey) {
                 localStorage.setItem(
                     this.atOptions.signInStoredUrlStorageKey,
-                    window.location.pathname + window.location.search
+                    this.location.pathname + this.location.search
                 );
             }
 
@@ -99,7 +102,6 @@ export class Angular2TokenService implements CanActivate {
 
     // Inital configuration
     init(options?: Angular2TokenOptions) {
-
         let defaultOptions: Angular2TokenOptions = {
             apiPath:                    null,
             apiBase:                    null,
@@ -114,16 +116,16 @@ export class Angular2TokenService implements CanActivate {
 
             registerAccountPath:        'auth',
             deleteAccountPath:          'auth',
-            registerAccountCallback:    window.location.href,
+            registerAccountCallback:    this.location['href'], // will be undefined in node
 
             updatePasswordPath:         'auth',
 
             resetPasswordPath:          'auth/password',
-            resetPasswordCallback:      window.location.href,
+            resetPasswordCallback:      this.location['href'], // will be undefined in node
 
             userTypes:                  null,
 
-            oAuthBase:                  window.location.origin,
+            oAuthBase:                  this.location['origin'], // will be undefined in node
             oAuthPaths: {
                 github:                 'auth/github'
             },
@@ -196,7 +198,7 @@ export class Angular2TokenService implements CanActivate {
     signInOAuth(oAuthType: string) {
 
         let oAuthPath: string = this.getOAuthPath(oAuthType);
-        let callbackUrl: string = `${window.location.origin}/${this.atOptions.oAuthCallbackPath}`;
+        let callbackUrl: string = `${window.location['origin']}/${this.atOptions.oAuthCallbackPath}`;
         let oAuthWindowType: string = this.atOptions.oAuthWindowType;
         let authUrl: string = this.getOAuthUrl(oAuthPath, callbackUrl, oAuthWindowType);
 
@@ -217,7 +219,7 @@ export class Angular2TokenService implements CanActivate {
             );
             return this.requestCredentialsViaPostMessage(popup);
         } else if (oAuthWindowType == 'sameWindow') {
-            window.location.href = authUrl;
+            this.location['href'] = authUrl;
         } else {
             throw `Unsupported oAuthWindowType "${oAuthWindowType}"`;
         }
@@ -362,7 +364,7 @@ export class Angular2TokenService implements CanActivate {
 
         // Get auth data from local storage
         this.getAuthDataFromStorage();
-        
+
         // Merge auth headers to request if set
         if (this.atCurrentAuthData != null) {
             (<any>Object).assign(baseHeaders, {
@@ -375,7 +377,7 @@ export class Angular2TokenService implements CanActivate {
         }
 
         baseRequestOptions = new RequestOptions({
-            url: this.getApiPath() + url, 
+            url: this.getApiPath() + url,
         });
 
         // Merge standard and custom RequestOptions
